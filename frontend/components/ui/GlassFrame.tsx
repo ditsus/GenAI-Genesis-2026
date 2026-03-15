@@ -1,8 +1,6 @@
 "use client";
 
-const CARD_BORDER = "1px solid rgba(255,255,255,0.08)";
-const GLASS_BG = "rgba(255,255,255,0.03)";
-const GLASS_BLUR = "blur(12px)";
+import { GLASS_BORDER, GLASS_BG, GLASS_BLUR } from "@/lib/theme";
 
 export interface GlassFrameProps {
   children: React.ReactNode;
@@ -14,7 +12,7 @@ export function GlassFrame({ children, style }: GlassFrameProps) {
     <div
       style={{
         borderRadius: "16px",
-        border: CARD_BORDER,
+        border: GLASS_BORDER,
         background: GLASS_BG,
         backdropFilter: GLASS_BLUR,
         WebkitBackdropFilter: GLASS_BLUR,
