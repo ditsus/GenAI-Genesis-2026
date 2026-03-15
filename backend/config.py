@@ -1,20 +1,20 @@
-"""Configuration settings for REEL backend."""
+"""Configuration for REEL backend."""
 
-import os
 from functools import lru_cache
+
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    """Application settings loaded from environment."""
+    """Settings from environment."""
 
     # Google Cloud
     GOOGLE_CLOUD_PROJECT: str = "gen-lang-client-0326372924"
     GOOGLE_CLOUD_LOCATION: str = "us-central1"
     GOOGLE_GENAI_USE_VERTEXAI: str = "True"
-    BUCKET_NAME: str = "clearplay-demo-videos"
+    BUCKET_NAME: str = "reel-demo-videos"
 
-    # Paths
+    # Paths (data, trailers, outputs, processed, frames)
     DATA_DIR: str = "data"
     TRAILERS_DIR: str = "trailers"
     OUTPUTS_DIR: str = "outputs"

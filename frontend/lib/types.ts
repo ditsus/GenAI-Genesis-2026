@@ -49,7 +49,7 @@ export interface AgePickerProps {
   onChange: (value: AgeGroup) => void;
 }
 
-/** Source for tab filtering (clearplay-style). */
+/** Source for tab filtering. */
 export type CardSource = "youtube" | "netflix" | "disney" | "upload";
 
 export interface VideoCardData {

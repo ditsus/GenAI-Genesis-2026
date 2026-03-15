@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-Clip N seconds from a video (URL or local file). Similar to Halftime/clearplay helpers
-that e.g. download "first 8 seconds" for processing.
+Clip N seconds from a video (URL or local file), e.g. first 8 seconds for processing.
 
 Usage:
   python scripts/clip_seconds.py <source> [--seconds 8] [--output path]

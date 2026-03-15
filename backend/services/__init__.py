@@ -1,4 +1,4 @@
-"""REEL services for video sanitization pipeline."""
+"""REEL pipeline services: Sentinel (scan), Forge (regen), Assembler (stitch)."""
 
 from .sentinel import analyze_video
 from .forge import generate_replacements

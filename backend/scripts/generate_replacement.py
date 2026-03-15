@@ -2,7 +2,6 @@
 """
 Generate a new clip with VEO from a video segment: extract start/end frames,
 upload to GCS, call VEO with a prompt, download the result.
-Similar to Halftime/clearplay generate_*.py (e.g. generate_hindenburg).
 
 Usage (run from repo root; backend/.env must be set for GCP/VEO):
   python scripts/generate_replacement.py <video_path> --prompt "A calm scene, no flashing."

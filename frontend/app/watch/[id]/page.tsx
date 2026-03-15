@@ -7,7 +7,7 @@ import { AgeGroup, Trailer, FILTERS, SegmentType } from "@/lib/types";
 import { API_BASE_URL } from "@/lib/constants";
 import { STRINGS } from "@/lib/strings";
 
-/** Map dashboard preference chip labels to segment types (clearplay-style). */
+/** Map dashboard preference chip labels to segment types. */
 const PREF_TO_SEGMENT: Record<string, SegmentType> = {
   Intimacy: "romance",
   Profanity: "language",

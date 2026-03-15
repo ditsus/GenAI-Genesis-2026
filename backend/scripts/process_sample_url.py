@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-Helper script: POST a video URL to the running REEL backend and poll job status.
-Similar in spirit to clearplay's generate_*.py one-off scripts.
+POST a video URL to the running REEL backend and poll job status until complete.
 
 Usage (backend must be running on localhost:8000):
   python scripts/process_sample_url.py [VIDEO_URL]

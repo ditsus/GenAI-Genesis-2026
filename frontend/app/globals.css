@@ -51,7 +51,7 @@ body {
   animation: skeleton-pulse 1.5s ease-in-out 0.1s infinite;
 }
 
-/* Enter preferences button - matches dashboard theme (clearplay-style) */
+/* Enter preferences button - matches dashboard theme */
 .enter-prefs-btn {
   outline: none;
   cursor: pointer;

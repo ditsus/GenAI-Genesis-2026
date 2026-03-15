@@ -1,4 +1,4 @@
-"""In-memory job store for REEL processing jobs."""
+"""In-memory job store for REEL processing jobs (status, logs, output_path)."""
 
 import threading
 from dataclasses import dataclass, field

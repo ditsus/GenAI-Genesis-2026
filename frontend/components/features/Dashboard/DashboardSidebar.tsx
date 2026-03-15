@@ -18,7 +18,7 @@ interface DashboardSidebarProps {
   appliedCustomPrefs?: string;
   onApplyCustomPrefs?: () => void;
   showCheckmark?: boolean;
-  /** Called when "+ New Video" is clicked (opens upload modal in clearplay-style). */
+  /** Called when "+ New Video" is clicked (opens upload modal). */
   onNewVideoClick?: () => void;
 }
 

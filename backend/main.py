@@ -1,4 +1,8 @@
-"""REEL FastAPI backend: video sanitization pipeline with Railtracks observability."""
+"""REEL FastAPI backend: video sanitization pipeline with Railtracks observability.
+
+API: GET /api/trailers (data/timestamps.json), static /trailers, /outputs, /processed,
+POST /process-video, and /api/jobs for pipeline status.
+"""
 
 import asyncio
 import json
@@ -27,11 +31,9 @@ from services.sentinel import analyze_video
 from services.forge import generate_replacements
 from services.assembler import stitch_video
 
-# Initialize Railtracks for project-level observability (dashboard shows REEL-Sanitization)
+# --- Config and app ---
 rt.set_config(save_state=True)
-
 app = FastAPI(title="REEL API", version="1.0.0")
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
@@ -41,24 +43,39 @@ app.add_middleware(
 )
 
 settings = get_settings()
-
-# Ensure directories exist
 Path(settings.DATA_DIR).mkdir(parents=True, exist_ok=True)
 Path(settings.TRAILERS_DIR).mkdir(parents=True, exist_ok=True)
 Path(settings.OUTPUTS_DIR).mkdir(parents=True, exist_ok=True)
 Path(settings.PROCESSED_DIR).mkdir(parents=True, exist_ok=True)
 Path(settings.FRAMES_DIR).mkdir(parents=True, exist_ok=True)
 
-# Mount static directories
-@app.get("/api/health")
-def health():
-    """Health check endpoint."""
-    return {"service": "reel", "status": "ok"}
-
-
 app.mount("/trailers", StaticFiles(directory=settings.TRAILERS_DIR), name="trailers")
 app.mount("/outputs", StaticFiles(directory=settings.OUTPUTS_DIR), name="outputs")
 app.mount("/processed", StaticFiles(directory=settings.PROCESSED_DIR), name="processed")
+
+# --- API routes ---
+TIMESTAMPS_FILE = "timestamps.json"
+
+
+def _load_timestamps() -> list:
+    """Load trailer list from data/timestamps.json."""
+    path = os.path.join(settings.DATA_DIR, TIMESTAMPS_FILE)
+    if not os.path.exists(path):
+        return []
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
+@app.get("/api/trailers")
+def get_trailers():
+    """Return trailers from data/timestamps.json."""
+    return _load_timestamps()
+
+
+@app.get("/api/health")
+def health():
+    """Health check."""
+    return {"service": "reel", "status": "ok"}
 
 # --- Railtracks pipeline tasks (observability + orchestration) ---
 
@@ -317,21 +334,6 @@ def get_job_logs(job_id: str):
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     return {"job_id": job_id, "logs": job_store.get_logs(job_id)}
-
-
-def _load_timestamps() -> list:
-    """Load trailers from data/timestamps.json."""
-    path = os.path.join(settings.DATA_DIR, "timestamps.json")
-    if not os.path.exists(path):
-        return []
-    with open(path) as f:
-        return json.load(f)
-
-
-@app.get("/api/trailers")
-def get_trailers():
-    """Return trailers from data/timestamps.json."""
-    return _load_timestamps()
 
 
 if __name__ == "__main__":

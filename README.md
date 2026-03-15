@@ -208,7 +208,7 @@ Create `backend/.env` from `backend/.env.example`. Key variables:
 | `GOOGLE_CLOUD_LOCATION` | Vertex AI region | `us-central1` |
 | `GOOGLE_GENAI_USE_VERTEXAI` | Use Vertex AI (True) or Gemini API | `True` |
 | `GOOGLE_APPLICATION_CREDENTIALS` | Path to service account JSON | — |
-| `BUCKET_NAME` | GCS bucket for frames and VEO output | `clearplay-demo-videos` |
+| `BUCKET_NAME` | GCS bucket for frames and VEO output | `reel-demo-videos` |
 | `VIDEO_DOWNLOAD_TIMEOUT` | Max seconds to download video | `120` |
 | `VEO_MAX_WAIT` | Max seconds to wait per VEO segment | `600` |
 | `GEMINI_MODEL` | Model for Scan | `gemini-2.0-flash` |

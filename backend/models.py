@@ -1,4 +1,4 @@
-"""Pydantic models for REEL API."""
+"""Pydantic models for REEL API (preferences, segments, job status; compatible with timestamps.json segment shape)."""
 
 from typing import Optional
 from pydantic import BaseModel, Field
