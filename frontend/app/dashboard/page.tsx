@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
@@ -29,51 +29,35 @@ const STATS = [
   { value: "Veo-3.1", label: "Model" },
 ];
 
-const CARDS = [
-  {
-    id: "titanic",
-    title: "Titanic - Trailer",
-    image: "https://image.tmdb.org/t/p/w780/9xjZS2rlVxm8SFx8kPC3aIGCOYQ.jpg",
-    badge: "CLIP",
-  },
-  {
-    id: "guardians",
-    title: "Guardians of the Galaxy - Clip",
-    subtitle: "",
-    image: "http://localhost:8000/trailers/chrispratt_thumb.jpg",
-    badge: "CLIP",
-  },
-  {
-    id: "hindenburg",
-    title: "Hindenburg Disaster - Clip",
-    subtitle: "",
-    image: "http://localhost:8000/trailers/hindenburg_thumb.jpg",
-    badge: "CLIP",
-  },
-  {
-    title: "Netflix — Trending",
-    subtitle: "",
-    image: PIC("cinema-screen", 600, 340),
-    badge: "CLIP",
-  },
-  {
-    title: "YouTube — Creator Upload",
-    subtitle: "",
-    image: PIC("camera-lens", 600, 340),
-    badge: "CLIP",
-  },
-  {
-    title: "Upload — Raw Footage",
-    subtitle: "",
-    image: PIC("film-reel", 600, 340),
-    badge: "CLIP",
-  },
+type Card = { id?: string; title: string; subtitle?: string; image: string; badge: string };
+
+const PLACEHOLDER_CARDS: Card[] = [
+  { title: "Netflix — Trending", subtitle: "", image: PIC("cinema-screen", 600, 340), badge: "CLIP" },
+  { title: "YouTube — Creator Upload", subtitle: "", image: PIC("camera-lens", 600, 340), badge: "CLIP" },
+  { title: "Upload — Raw Footage", subtitle: "", image: PIC("film-reel", 600, 340), badge: "CLIP" },
 ];
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("All Videos");
   const [prefs, setPrefs] = useState<Record<string, boolean>>({});
+  const [cards, setCards] = useState<Card[]>(PLACEHOLDER_CARDS);
   const router = useRouter();
+
+  useEffect(() => {
+    fetch("http://localhost:8000/api/trailers")
+      .then((r) => r.json())
+      .then((trailers: { id: string; title: string; thumbnail: string }[]) => {
+        const fromApi = trailers.map((t) => ({
+          id: t.id,
+          title: t.title,
+          subtitle: "",
+          image: t.thumbnail?.startsWith("http") ? t.thumbnail : `http://localhost:8000${t.thumbnail || ""}`,
+          badge: "CLIP",
+        }));
+        setCards([...fromApi, ...PLACEHOLDER_CARDS]);
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <div
@@ -405,7 +389,7 @@ export default function Dashboard() {
             gap: "16px",
           }}
         >
-          {CARDS.map((card, i) => (
+          {cards.map((card, i) => (
             <motion.div
               key={card.title}
               className="cursor-pointer"
