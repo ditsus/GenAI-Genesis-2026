@@ -65,8 +65,7 @@ app.mount("/processed", StaticFiles(directory=settings.PROCESSED_DIR), name="pro
 RETRIES = 2
 
 
-@rt.function_node(name="Scan")
-def sentinel_scan(
+def _sentinel_scan_impl(
     video_id: str,
     video_path: str,
     video_url: str,
@@ -96,8 +95,10 @@ def sentinel_scan(
     raise last_error  # type: ignore
 
 
-@rt.function_node(name="Regen")
-def forge_regeneration(
+sentinel_scan = rt.function_node(_sentinel_scan_impl, name="Scan")
+
+
+def _forge_regeneration_impl(
     video_id: str,
     video_path: str,
     segments: list[SanitizationSegment],
@@ -128,8 +129,10 @@ def forge_regeneration(
     raise last_error  # type: ignore
 
 
-@rt.function_node(name="Stitch")
-def assembler_stitch(
+forge_regeneration = rt.function_node(_forge_regeneration_impl, name="Regen")
+
+
+def _assembler_stitch_impl(
     video_id: str,
     video_path: str,
     segments: list[SanitizationSegment],
@@ -157,6 +160,9 @@ def assembler_stitch(
                 log_fn(f"Stitch retry {attempt + 1}/{RETRIES}: {e}")
             continue
     raise last_error  # type: ignore
+
+
+assembler_stitch = rt.function_node(_assembler_stitch_impl, name="Stitch")
 
 
 async def _pipeline_entry(job_id: str, req: ProcessVideoRequest) -> None:
@@ -272,9 +278,10 @@ def _run_pipeline(job_id: str, req: ProcessVideoRequest) -> None:
     workflow = reel_workflow.update_context({"video_id": job_id})
     try:
         asyncio.run(workflow.ainvoke(job_id, req))
-    except Exception:
-        # Pipeline entry already updates job_store on failure
-        pass
+    except Exception as e:
+        # Pipeline entry updates job_store on failure; if we get here, the failure was outside it (e.g. Flow/event loop)
+        job_store.append_log(job_id, f"Pipeline failed: {e}")
+        job_store.update(job_id, status=JobStatus.FAILED, error=str(e))
 
 
 @app.post("/process-video")
