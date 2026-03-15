@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { CursorGlow } from "./components/CursorGlow";
 
 export const metadata: Metadata = {
   title: "REEL",
@@ -23,26 +24,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           margin: 0,
         }}
       >
-        <div id="cursor-glow" />
+        <CursorGlow />
         {children}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function(){
-                var g=document.getElementById('cursor-glow');
-                if(!g)return;
-                document.addEventListener('mousemove',function(e){
-                  g.style.left=e.clientX+'px';
-                  g.style.top=e.clientY+'px';
-                  g.style.opacity='1';
-                });
-                document.addEventListener('mouseleave',function(){
-                  g.style.opacity='0';
-                });
-              })();
-            `,
-          }}
-        />
       </body>
     </html>
   );
