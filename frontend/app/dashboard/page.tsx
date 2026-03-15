@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { VideoCardData } from "@/lib/types";
+import { VideoCardData, TrailerListItem } from "@/lib/types";
 import { STRINGS } from "@/lib/strings";
 import { useTrailers } from "@/hooks/useTrailers";
 import { API_BASE_URL } from "@/lib/constants";
@@ -13,7 +13,7 @@ import { VideoCard } from "@/components/ui/VideoCard";
 import { SkeletonCard } from "@/components/ui/SkeletonCard";
 import { PLACEHOLDER_CARDS } from "@/components/features/Dashboard/constants";
 
-function trailersToCards(trailers: { id: string; title: string; thumbnail: string }[]): VideoCardData[] {
+function trailersToCards(trailers: TrailerListItem[]): VideoCardData[] {
   return trailers.map((t) => ({
     id: t.id,
     title: t.title,
