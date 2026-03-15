@@ -1,12 +1,15 @@
-"""REEL FastAPI backend: video sanitization pipeline."""
+"""REEL FastAPI backend: video sanitization pipeline with Railtracks observability."""
 
+import asyncio
 import json
 import os
 import tempfile
 import uuid
 from pathlib import Path
+from typing import Callable
 
 import httpx
+import railtracks as rt
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -18,11 +21,14 @@ from models import (
     JobStatus,
     ProcessVideoRequest,
     UserPreferences,
+    SanitizationSegment,
 )
 from services.sentinel import analyze_video
 from services.forge import generate_replacements
 from services.assembler import stitch_video
 
+# Initialize Railtracks for project-level observability (dashboard shows REEL-Sanitization)
+rt.set_config(save_state=True)
 
 app = FastAPI(title="REEL API", version="1.0.0")
 
@@ -54,9 +60,110 @@ app.mount("/trailers", StaticFiles(directory=settings.TRAILERS_DIR), name="trail
 app.mount("/outputs", StaticFiles(directory=settings.OUTPUTS_DIR), name="outputs")
 app.mount("/processed", StaticFiles(directory=settings.PROCESSED_DIR), name="processed")
 
+# --- Railtracks pipeline tasks (observability + orchestration) ---
 
-def _run_pipeline(job_id: str, req: ProcessVideoRequest) -> None:
-    """Run the full sanitization pipeline in background."""
+RETRIES = 2
+
+
+@rt.function_node(name="Scan")
+def sentinel_scan(
+    video_id: str,
+    video_path: str,
+    video_url: str,
+    user_preferences: UserPreferences,
+    custom_prompt: str | None,
+    log_fn: Callable[[str], None],
+) -> list[SanitizationSegment]:
+    """
+    Sentinel: Gemini-based scan to identify segments to sanitize.
+    Output feeds into Regen step.
+    """
+    last_error = None
+    for attempt in range(RETRIES + 1):
+        try:
+            return analyze_video(
+                video_url,
+                user_preferences,
+                custom_prompt,
+                log_fn=log_fn,
+                video_path=video_path,
+            )
+        except Exception as e:
+            last_error = e
+            if attempt < RETRIES:
+                log_fn(f"Scan retry {attempt + 1}/{RETRIES}: {e}")
+            continue
+    raise last_error  # type: ignore
+
+
+@rt.function_node(name="Regen")
+def forge_regeneration(
+    video_id: str,
+    video_path: str,
+    segments: list[SanitizationSegment],
+    outputs_dir: str,
+    frames_dir: str,
+    log_fn: Callable[[str], None],
+) -> list[str]:
+    """
+    Forge: VEO regeneration of replacement clips per segment.
+    Consumes Scan output; output feeds into Stitch.
+    """
+    last_error = None
+    for attempt in range(RETRIES + 1):
+        try:
+            return generate_replacements(
+                video_path,
+                segments,
+                video_id,
+                outputs_dir,
+                frames_dir,
+                log_fn=log_fn,
+            )
+        except Exception as e:
+            last_error = e
+            if attempt < RETRIES:
+                log_fn(f"Regen retry {attempt + 1}/{RETRIES}: {e}")
+            continue
+    raise last_error  # type: ignore
+
+
+@rt.function_node(name="Stitch")
+def assembler_stitch(
+    video_id: str,
+    video_path: str,
+    segments: list[SanitizationSegment],
+    replacement_paths: list[str],
+    output_path: str,
+    log_fn: Callable[[str], None],
+) -> str:
+    """
+    Assembler: FFmpeg stitch of original + replacement clips.
+    Consumes Regen output; produces final video.
+    """
+    last_error = None
+    for attempt in range(RETRIES + 1):
+        try:
+            return stitch_video(
+                video_path,
+                segments,
+                replacement_paths,
+                output_path,
+                log_fn=log_fn,
+            )
+        except Exception as e:
+            last_error = e
+            if attempt < RETRIES:
+                log_fn(f"Stitch retry {attempt + 1}/{RETRIES}: {e}")
+            continue
+    raise last_error  # type: ignore
+
+
+async def _pipeline_entry(job_id: str, req: ProcessVideoRequest) -> None:
+    """
+    Railtracks workflow entry: chain Scan -> Regen -> Stitch.
+    video_id (job_id) is passed through all tasks for a single session trace.
+    """
     def log(msg: str) -> None:
         job_store.append_log(job_id, msg)
 
@@ -65,9 +172,8 @@ def _run_pipeline(job_id: str, req: ProcessVideoRequest) -> None:
         job_store.update(job_id, status=JobStatus.SCANNING, progress="Downloading video...")
         log("Starting pipeline")
 
-        # 1. Download video
-        with httpx.Client(timeout=settings.VIDEO_DOWNLOAD_TIMEOUT) as client:
-            response = client.get(req.video_url)
+        with httpx.AsyncClient(timeout=settings.VIDEO_DOWNLOAD_TIMEOUT) as client:
+            response = await client.get(req.video_url)
             response.raise_for_status()
             video_bytes = response.content
 
@@ -78,14 +184,16 @@ def _run_pipeline(job_id: str, req: ProcessVideoRequest) -> None:
 
         prefs = req.user_preferences or UserPreferences()
 
-        # 2. Sentinel: Gemini analysis
+        # 1. Scan (Gemini)
         job_store.update(job_id, status=JobStatus.SCANNING, progress="Analyzing with Gemini...")
-        segments = analyze_video(
+        segments = await rt.call(
+            sentinel_scan,
+            job_id,
+            video_path,
             req.video_url,
             prefs,
             req.custom_prompt,
-            log_fn=log,
-            video_path=video_path,
+            log,
         )
 
         if not segments:
@@ -102,26 +210,29 @@ def _run_pipeline(job_id: str, req: ProcessVideoRequest) -> None:
             log("Pipeline complete (no sanitization needed)")
             return
 
-        # 3. Forge: VEO generation per segment
+        # 2. Regen (VEO)
         job_store.update(job_id, status=JobStatus.REGENERATING, progress="Generating replacements...")
-        replacement_paths = generate_replacements(
+        replacement_paths = await rt.call(
+            forge_regeneration,
+            job_id,
             video_path,
             segments,
-            job_id,
             settings.OUTPUTS_DIR,
             settings.FRAMES_DIR,
-            log_fn=log,
+            log,
         )
 
-        # 4. Assembler: FFmpeg stitch
+        # 3. Stitch (FFmpeg)
         job_store.update(job_id, status=JobStatus.STITCHING, progress="Stitching final video...")
         output_path = os.path.join(settings.PROCESSED_DIR, f"{job_id}.mp4")
-        stitch_video(
+        await rt.call(
+            assembler_stitch,
+            job_id,
             video_path,
             segments,
             replacement_paths,
             output_path,
-            log_fn=log,
+            log,
         )
 
         job_store.update(
@@ -140,7 +251,6 @@ def _run_pipeline(job_id: str, req: ProcessVideoRequest) -> None:
             error=str(e),
         )
     finally:
-        # Cleanup temp video
         if video_path and os.path.exists(video_path):
             try:
                 os.unlink(video_path)
@@ -148,9 +258,28 @@ def _run_pipeline(job_id: str, req: ProcessVideoRequest) -> None:
                 pass
 
 
+# Workflow: Scan -> Regen -> Stitch; each run tied to video_id via context
+reel_workflow = rt.Flow(
+    name="REEL-Sanitization",
+    entry_point=_pipeline_entry,
+    context={},
+)
+
+
+def _run_pipeline(job_id: str, req: ProcessVideoRequest) -> None:
+    """Run the full sanitization pipeline via Railtracks workflow (Scan -> Regen -> Stitch)."""
+    # Bind video_id to this run so the execution trace is tied to one session in the dashboard
+    workflow = reel_workflow.update_context({"video_id": job_id})
+    try:
+        asyncio.run(workflow.ainvoke(job_id, req))
+    except Exception:
+        # Pipeline entry already updates job_store on failure
+        pass
+
+
 @app.post("/process-video")
 def process_video(req: ProcessVideoRequest, background_tasks: BackgroundTasks):
-    """Start video processing. Returns job_id immediately."""
+    """Start video processing. Returns job_id immediately. Runs Railtracks workflow with video_id trace."""
     job_id = str(uuid.uuid4())[:8]
     job_store.create(job_id)
     job_store.append_log(job_id, f"Job created for {req.video_url[:80]}...")
