@@ -20,6 +20,9 @@ export const STRINGS = {
     preferences: "Preferences",
     customPreferences: "Custom Preferences",
     customPreferencesPlaceholder: "Enter your preferences…",
+    connectionPending:
+      "Backend connection pending. Running in Frontend-only mode.",
+    retry: "Retry",
     stats: {
       total: "Total",
       processed: "Processed",

@@ -37,3 +37,16 @@ body {
   transition: opacity 0.2s ease;
   mix-blend-mode: screen;
 }
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.skeleton-pulse {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-pulse-delay {
+  animation: skeleton-pulse 1.5s ease-in-out 0.1s infinite;
+}
