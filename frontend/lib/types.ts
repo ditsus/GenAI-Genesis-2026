@@ -9,6 +9,13 @@ export interface Segment {
   replacement: string;
 }
 
+/** Shape returned by GET /api/trailers (list endpoint). */
+export interface TrailerListItem {
+  id: string;
+  title: string;
+  thumbnail: string;
+}
+
 export interface Trailer {
   id: string;
   title: string;
