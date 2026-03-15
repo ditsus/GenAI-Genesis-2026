@@ -79,10 +79,19 @@ export const STRINGS = {
     heroTitleLine2: "major platforms.",
     learnMoreModal: {
       title: "Why REEL?",
+      tagline:
+        "Next-generation video accessibility and safety, powered by generative AI.",
       bullet1: "Real-time Video Modification",
+      desc1:
+        "Apply filters and replacements as you watch—no pre-processing delay.",
       bullet2: "Context-Aware Replacements",
+      desc2:
+        "Intelligently identifies scenes and objects to ensure seamless replacements.",
       bullet3: "Safety-First Content Filtering",
+      desc3:
+        "Age-appropriate and preference-driven filtering so content fits your audience.",
       close: "Close",
+      footer: "Built for the GenAI Genesis 2026 by James Sheng & Damir Alibayev",
     },
   },
 } as const;
