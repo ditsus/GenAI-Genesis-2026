@@ -71,7 +71,7 @@ export default function WatchPage({ params }: { params: Promise<{ id: string }> 
             e.currentTarget.style.background = "rgba(255,255,255,0.06)";
           }}
         >
-          ←
+          {STRINGS.nav.back}
         </button>
       </div>
 

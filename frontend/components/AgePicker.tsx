@@ -4,21 +4,9 @@ import { AgePickerProps } from "@/lib/types";
 import { STRINGS } from "@/lib/strings";
 
 const OPTIONS = [
-  {
-    value: "kids" as const,
-    label: STRINGS.agePicker.kids,
-    sub: STRINGS.agePicker.kidsSub,
-  },
-  {
-    value: "teen" as const,
-    label: STRINGS.agePicker.teen,
-    sub: STRINGS.agePicker.teenSub,
-  },
-  {
-    value: "adult" as const,
-    label: STRINGS.agePicker.adult,
-    sub: STRINGS.agePicker.adultSub,
-  },
+  { value: "kids" as const, label: STRINGS.agePicker.kids },
+  { value: "teen" as const, label: STRINGS.agePicker.teen },
+  { value: "adult" as const, label: STRINGS.agePicker.adult },
 ];
 
 export default function AgePicker({ value, onChange }: AgePickerProps) {

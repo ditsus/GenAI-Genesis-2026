@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { VideoCardData } from "@/lib/types";
+import { API_BASE_URL } from "@/lib/constants";
 
 const PIC = (seed: string, w: number, h: number) =>
   `https://picsum.photos/seed/${seed}/${w}/${h}`;
@@ -29,9 +31,7 @@ const STATS = [
   { value: "Veo-3.1", label: "Model" },
 ];
 
-type Card = { id?: string; title: string; subtitle?: string; image: string; badge: string };
-
-const PLACEHOLDER_CARDS: Card[] = [
+const PLACEHOLDER_CARDS: VideoCardData[] = [
   { title: "Netflix — Trending", subtitle: "", image: PIC("cinema-screen", 600, 340), badge: "CLIP" },
   { title: "YouTube — Creator Upload", subtitle: "", image: PIC("camera-lens", 600, 340), badge: "CLIP" },
   { title: "Upload — Raw Footage", subtitle: "", image: PIC("film-reel", 600, 340), badge: "CLIP" },
@@ -40,18 +40,18 @@ const PLACEHOLDER_CARDS: Card[] = [
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("All Videos");
   const [prefs, setPrefs] = useState<Record<string, boolean>>({});
-  const [cards, setCards] = useState<Card[]>(PLACEHOLDER_CARDS);
+  const [cards, setCards] = useState<VideoCardData[]>(PLACEHOLDER_CARDS);
   const router = useRouter();
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/trailers")
+    fetch(`${API_BASE_URL}/api/trailers`)
       .then((r) => r.json())
       .then((trailers: { id: string; title: string; thumbnail: string }[]) => {
-        const fromApi = trailers.map((t) => ({
+        const fromApi: VideoCardData[] = trailers.map((t) => ({
           id: t.id,
           title: t.title,
           subtitle: "",
-          image: t.thumbnail?.startsWith("http") ? t.thumbnail : `http://localhost:8000${t.thumbnail || ""}`,
+          image: t.thumbnail?.startsWith("http") ? t.thumbnail : `${API_BASE_URL}${t.thumbnail || ""}`,
           badge: "CLIP",
         }));
         setCards([...fromApi, ...PLACEHOLDER_CARDS]);

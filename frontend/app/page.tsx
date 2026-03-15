@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { AgeGroup, Trailer } from "@/lib/types";
+import { API_BASE_URL } from "@/lib/constants";
 
 const CARD_BORDER = "1px solid rgba(255,255,255,0.08)";
 const GLASS_BG = "rgba(255,255,255,0.03)";
@@ -113,7 +114,7 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/trailers")
+    fetch(`${API_BASE_URL}/api/trailers`)
       .then((r) => r.json())
       .then(setTrailers);
   }, []);
