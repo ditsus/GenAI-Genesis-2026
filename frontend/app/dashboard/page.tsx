@@ -14,7 +14,7 @@ const TABS = ["All Videos", "YouTube", "Netflix", "Disney+", "Uploads"];
 const PREF_GROUPS = [
   {
     label: "Sensory",
-    items: ["Epilepsy", "Audio dampening", "Motion sickness", "Colour-blindness"],
+    items: ["Epileptic", "Loud Volume", "Motion sickness", "Colour-blindness"],
   },
   {
     label: "Social Safety",
@@ -23,10 +23,10 @@ const PREF_GROUPS = [
 ];
 
 const STATS = [
-  { value: "2", label: "Processing" },
-  { value: "5", label: "Sanitized" },
-  { value: "12", label: "Total" },
-  { value: "+15%", label: "Safety Score" },
+  { value: "6", label: "Total" },
+  { value: "3", label: "Processed" },
+  { value: "34", label: "Watched" },
+  { value: "Veo-3.1", label: "Model" },
 ];
 
 const CARDS = [
@@ -44,9 +44,10 @@ const CARDS = [
     badge: "CLIP",
   },
   {
-    title: "Disney+ — Family Content",
+    id: "hindenburg",
+    title: "Hindenburg Disaster - Clip",
     subtitle: "",
-    image: PIC("disney-castle", 600, 340),
+    image: "http://localhost:8000/trailers/hindenburg_thumb.jpg",
     badge: "CLIP",
   },
   {
@@ -227,7 +228,7 @@ export default function Dashboard() {
             e.currentTarget.style.boxShadow = "none";
           }}
         >
-          + New Clip
+          + New Video
         </button>
 
         {/* Preferences */}
@@ -273,20 +274,16 @@ export default function Dashboard() {
                         }
                         style={{
                           borderRadius: "999px",
-                          border: active
-                            ? "1px solid rgba(77,208,225,0.6)"
-                            : GLASS_BORDER,
-                          background: active
-                            ? "rgba(77,208,225,0.2)"
-                            : "rgba(255,255,255,0.03)",
-                          color: active
-                            ? "#ffffff"
-                            : "rgba(255,255,255,0.65)",
+                          border: GLASS_BORDER,
+                          background: "rgba(255,255,255,0.03)",
+                          color: "rgba(255,255,255,0.65)",
+                          textDecoration: active ? "line-through" : "none",
+                          textDecorationThickness: active ? "3px" : undefined,
                           fontSize: "11px",
                           padding: "5px 10px",
                           cursor: "pointer",
                           fontFamily: "'Inter', sans-serif",
-                          transition: "border 0.15s ease, background 0.15s ease, color 0.15s ease",
+                          transition: "text-decoration 0.15s ease",
                         }}
                       >
                         {item}
