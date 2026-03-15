@@ -71,4 +71,8 @@ export const STRINGS = {
   cards: {
     badge: "CLIP",
   },
+  home: {
+    heroTitleLine1: "Optimized video for all",
+    heroTitleLine2: "major platforms.",
+  },
 } as const;
