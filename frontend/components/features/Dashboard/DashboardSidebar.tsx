@@ -18,6 +18,8 @@ interface DashboardSidebarProps {
   appliedCustomPrefs?: string;
   onApplyCustomPrefs?: () => void;
   showCheckmark?: boolean;
+  /** Called when "+ New Video" is clicked (opens upload modal in clearplay-style). */
+  onNewVideoClick?: () => void;
 }
 
 export function DashboardSidebar({
@@ -29,6 +31,7 @@ export function DashboardSidebar({
   appliedCustomPrefs,
   onApplyCustomPrefs,
   showCheckmark = false,
+  onNewVideoClick,
 }: DashboardSidebarProps) {
   const router = useRouter();
 
@@ -107,13 +110,15 @@ export function DashboardSidebar({
       <StatsGrid stats={stats} />
 
       <button
+        type="button"
+        onClick={onNewVideoClick}
         style={{
           background: "#ffffff",
           color: "#0B0E14",
           border: "none",
           borderRadius: "999px",
-          padding: "12px 0",
-          fontSize: "14px",
+          padding: "0.6rem 1.5rem",
+          fontSize: "13px",
           fontWeight: 600,
           fontFamily: "'Inter', sans-serif",
           cursor: "pointer",

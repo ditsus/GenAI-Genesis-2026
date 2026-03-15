@@ -11,7 +11,7 @@ import { DashboardSidebar } from "@/components/features/Dashboard/DashboardSideb
 import { DashboardTabs } from "@/components/features/Dashboard/DashboardTabs";
 import { VideoCard } from "@/components/ui/VideoCard";
 import { SkeletonCard } from "@/components/ui/SkeletonCard";
-import { PLACEHOLDER_CARDS, DASHBOARD_STATS } from "@/components/features/Dashboard/constants";
+import { PLACEHOLDER_CARDS, DASHBOARD_STATS, TAB_TO_SOURCE } from "@/components/features/Dashboard/constants";
 import type { StatItem } from "@/components/features/Dashboard/StatsGrid";
 
 const WATCHED_KEY = "reel-watched-count";
@@ -35,6 +35,7 @@ export default function Dashboard() {
   const [customPrefs, setCustomPrefs] = useState("");
   const [appliedCustomPrefs, setAppliedCustomPrefs] = useState("");
   const [showCheckmark, setShowCheckmark] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
   const { data: trailers, isLoading, error, refetch } = useTrailers();
   const router = useRouter();
 
@@ -56,10 +57,16 @@ export default function Dashboard() {
     [watchedCount]
   );
 
-  const cards: VideoCardData[] = useMemo(() => {
+  const allCards: VideoCardData[] = useMemo(() => {
     if (!trailers?.length) return PLACEHOLDER_CARDS;
     return [...trailersToCards(trailers), ...PLACEHOLDER_CARDS];
   }, [trailers]);
+
+  const filteredCards: VideoCardData[] = useMemo(() => {
+    const source = TAB_TO_SOURCE[activeTab];
+    if (source === null) return allCards;
+    return allCards.filter((c) => c.source === source);
+  }, [allCards, activeTab]);
 
   const handlePrefToggle = (key: string) => {
     setPrefs((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -96,8 +103,122 @@ export default function Dashboard() {
         background: "#0B0E14",
         display: "flex",
         fontFamily: "'Inter', sans-serif",
+        position: "relative",
       }}
     >
+      {showUploadModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 100,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "24px",
+          }}
+          onClick={() => setShowUploadModal(false)}
+        >
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+              background: "rgba(11,14,20,0.4)",
+            }}
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: "relative",
+              width: "100%",
+              maxWidth: "420px",
+              borderRadius: "16px",
+              border: "1px solid rgba(255,255,255,0.1)",
+              background: "rgba(11,14,20,0.95)",
+              backdropFilter: "blur(12px)",
+              padding: "32px",
+              boxShadow: "0 24px 80px rgba(0,0,0,0.5)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "20px",
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: "18px",
+                  fontWeight: 600,
+                  color: "#ffffff",
+                  margin: 0,
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                Upload Video
+              </h2>
+              <button
+                type="button"
+                onClick={() => setShowUploadModal(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "rgba(255,255,255,0.5)",
+                  fontSize: "20px",
+                  cursor: "pointer",
+                  padding: "4px",
+                  lineHeight: 1,
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <label
+              htmlFor="upload-input"
+              style={{
+                display: "block",
+                border: "2px dashed rgba(255,255,255,0.2)",
+                borderRadius: "12px",
+                padding: "40px 24px",
+                textAlign: "center",
+                cursor: "pointer",
+                transition: "border-color 0.2s, background 0.2s",
+                color: "rgba(255,255,255,0.7)",
+                fontSize: "14px",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "rgba(255,255,255,0.35)";
+                e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)";
+                e.currentTarget.style.background = "transparent";
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <input
+                type="file"
+                accept="video/*"
+                multiple
+                style={{ display: "none" }}
+                onChange={() => {}}
+                id="upload-input"
+              />
+              <span style={{ display: "block", marginBottom: "8px", fontSize: "32px" }}>📁</span>
+              Drop files here or click to browse
+            </label>
+          </motion.div>
+        </motion.div>
+      )}
       <DashboardSidebar
         prefs={prefs}
         onPrefToggle={handlePrefToggle}
@@ -107,6 +228,7 @@ export default function Dashboard() {
         appliedCustomPrefs={appliedCustomPrefs}
         onApplyCustomPrefs={handleApplyCustomPrefs}
         showCheckmark={showCheckmark}
+        onNewVideoClick={() => setShowUploadModal(true)}
       />
 
       <main style={{ flex: 1, padding: "28px 32px", overflow: "auto" }}>
@@ -184,7 +306,7 @@ export default function Dashboard() {
         >
           {isLoading
             ? Array.from({ length: 6 }, (_, i) => <SkeletonCard key={i} />)
-            : cards.map((card, i) => (
+            : filteredCards.map((card, i) => (
               <VideoCard
                 key={card.id ?? card.title}
                 card={card}
