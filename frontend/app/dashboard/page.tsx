@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { VideoCardData, TrailerListItem } from "@/lib/types";
@@ -11,7 +11,10 @@ import { DashboardSidebar } from "@/components/features/Dashboard/DashboardSideb
 import { DashboardTabs } from "@/components/features/Dashboard/DashboardTabs";
 import { VideoCard } from "@/components/ui/VideoCard";
 import { SkeletonCard } from "@/components/ui/SkeletonCard";
-import { PLACEHOLDER_CARDS } from "@/components/features/Dashboard/constants";
+import { PLACEHOLDER_CARDS, DASHBOARD_STATS } from "@/components/features/Dashboard/constants";
+import type { StatItem } from "@/components/features/Dashboard/StatsGrid";
+
+const WATCHED_KEY = "reel-watched-count";
 
 function trailersToCards(trailers: TrailerListItem[]): VideoCardData[] {
   return trailers.map((t) => ({
@@ -28,8 +31,30 @@ function trailersToCards(trailers: TrailerListItem[]): VideoCardData[] {
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<string>(STRINGS.dashboard.tabs[0]);
   const [prefs, setPrefs] = useState<Record<string, boolean>>({});
+  const [watchedCount, setWatchedCount] = useState(34);
+  const [customPrefs, setCustomPrefs] = useState("");
+  const [appliedCustomPrefs, setAppliedCustomPrefs] = useState("");
+  const [showCheckmark, setShowCheckmark] = useState(false);
   const { data: trailers, isLoading, error, refetch } = useTrailers();
   const router = useRouter();
+
+  useEffect(() => {
+    const stored = localStorage.getItem(WATCHED_KEY);
+    if (stored) {
+      const n = parseInt(stored, 10);
+      if (!isNaN(n)) setWatchedCount(n);
+    }
+  }, []);
+
+  const stats: StatItem[] = useMemo(
+    () =>
+      DASHBOARD_STATS.map((s) =>
+        s.label === STRINGS.dashboard.stats.watched
+          ? { ...s, value: String(watchedCount) }
+          : s
+      ),
+    [watchedCount]
+  );
 
   const cards: VideoCardData[] = useMemo(() => {
     if (!trailers?.length) return PLACEHOLDER_CARDS;
@@ -38,6 +63,30 @@ export default function Dashboard() {
 
   const handlePrefToggle = (key: string) => {
     setPrefs((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleApplyCustomPrefs = () => {
+    const trimmed = customPrefs.trim();
+    if (trimmed) setAppliedCustomPrefs(trimmed);
+    setShowCheckmark(true);
+    setTimeout(() => setShowCheckmark(false), 1500);
+  };
+
+  const handleCardClick = (card: VideoCardData) => {
+    if (!card.id) return;
+    setWatchedCount((c) => {
+      const next = c + 1;
+      if (typeof localStorage !== "undefined") localStorage.setItem(WATCHED_KEY, String(next));
+      return next;
+    });
+    const activePrefNames = Object.entries(prefs)
+      .filter(([, v]) => v)
+      .map(([k]) => k.split(":")[1]);
+    const params = new URLSearchParams();
+    if (activePrefNames.length) params.set("prefs", activePrefNames.join(","));
+    if (appliedCustomPrefs) params.set("custom", appliedCustomPrefs);
+    const query = params.toString();
+    router.push(`/watch/${card.id}${query ? `?${query}` : ""}`);
   };
 
   return (
@@ -49,7 +98,16 @@ export default function Dashboard() {
         fontFamily: "'Inter', sans-serif",
       }}
     >
-      <DashboardSidebar prefs={prefs} onPrefToggle={handlePrefToggle} />
+      <DashboardSidebar
+        prefs={prefs}
+        onPrefToggle={handlePrefToggle}
+        stats={stats}
+        customPrefs={customPrefs}
+        onCustomPrefsChange={setCustomPrefs}
+        appliedCustomPrefs={appliedCustomPrefs}
+        onApplyCustomPrefs={handleApplyCustomPrefs}
+        showCheckmark={showCheckmark}
+      />
 
       <main style={{ flex: 1, padding: "28px 32px", overflow: "auto" }}>
         <motion.div
@@ -131,9 +189,7 @@ export default function Dashboard() {
                 key={card.id ?? card.title}
                 card={card}
                 index={i}
-                onClick={() => {
-                  if (card.id) router.push(`/watch/${card.id}`);
-                }}
+                onClick={() => handleCardClick(card)}
               />
             ))}
         </div>

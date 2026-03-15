@@ -22,6 +22,7 @@ export default function SmartPlayer({
   src,
   segments,
   ageGroup,
+  activeFilters: activeFiltersOverride,
 }: SmartPlayerProps) {
   const {
     mainRef,
@@ -43,7 +44,7 @@ export default function SmartPlayer({
     seek,
     getSegmentAtTime,
     formatTime,
-  } = useSmartPlayer({ segments, ageGroup });
+  } = useSmartPlayer({ segments, ageGroup, activeFilters: activeFiltersOverride });
 
   return (
     <div style={{ width: "100%" }}>

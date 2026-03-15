@@ -40,6 +40,8 @@ export interface SmartPlayerProps {
   src: string;
   segments: Segment[];
   ageGroup: AgeGroup;
+  /** When set, overrides age-based filters (e.g. from dashboard prefs in URL). */
+  activeFilters?: SegmentType[];
 }
 
 export interface AgePickerProps {

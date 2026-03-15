@@ -7,20 +7,22 @@ import { API_BASE_URL } from "@/lib/constants";
 export interface UseSmartPlayerProps {
   segments: Segment[];
   ageGroup: AgeGroup;
+  /** When set, overrides age-based filters (e.g. from dashboard prefs in URL). */
+  activeFilters?: SegmentType[];
 }
 
 function buildReplacementUrl(path: string): string {
   return `${API_BASE_URL}${path}`;
 }
 
-export function useSmartPlayer({ segments, ageGroup }: UseSmartPlayerProps) {
+export function useSmartPlayer({ segments, ageGroup, activeFilters: activeFiltersOverride }: UseSmartPlayerProps) {
   const mainRef = useRef<HTMLVideoElement>(null);
   const replRef = useRef<HTMLVideoElement>(null);
   const [showRepl, setShowRepl] = useState(false);
   const [badge, setBadge] = useState<SegmentType | null>(null);
   const activeSegRef = useRef<Segment | null>(null);
   const replacingRef = useRef(false);
-  const activeFilters = FILTERS[ageGroup];
+  const activeFilters = activeFiltersOverride ?? FILTERS[ageGroup];
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -82,7 +84,7 @@ export function useSmartPlayer({ segments, ageGroup }: UseSmartPlayerProps) {
     activeSegRef.current = null;
     replacingRef.current = false;
     mainRef.current?.play().catch(() => {});
-  }, [ageGroup]);
+  }, [ageGroup, activeFilters]);
 
   useEffect(() => {
     const video = mainRef.current;

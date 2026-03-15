@@ -6,13 +6,30 @@ import { STRINGS } from "@/lib/strings";
 import { StatsGrid } from "./StatsGrid";
 import { PreferenceChips } from "./PreferenceChips";
 import { DASHBOARD_STATS } from "./constants";
+import type { StatItem } from "./StatsGrid";
 
 interface DashboardSidebarProps {
   prefs: Record<string, boolean>;
   onPrefToggle: (key: string) => void;
+  /** Override stats (e.g. dynamic watched count). If not provided, uses DASHBOARD_STATS. */
+  stats?: StatItem[];
+  customPrefs?: string;
+  onCustomPrefsChange?: (value: string) => void;
+  appliedCustomPrefs?: string;
+  onApplyCustomPrefs?: () => void;
+  showCheckmark?: boolean;
 }
 
-export function DashboardSidebar({ prefs, onPrefToggle }: DashboardSidebarProps) {
+export function DashboardSidebar({
+  prefs,
+  onPrefToggle,
+  stats = DASHBOARD_STATS,
+  customPrefs,
+  onCustomPrefsChange,
+  appliedCustomPrefs,
+  onApplyCustomPrefs,
+  showCheckmark = false,
+}: DashboardSidebarProps) {
   const router = useRouter();
 
   return (
@@ -87,7 +104,7 @@ export function DashboardSidebar({ prefs, onPrefToggle }: DashboardSidebarProps)
         {STRINGS.nav.videos}
       </h2>
 
-      <StatsGrid stats={DASHBOARD_STATS} />
+      <StatsGrid stats={stats} />
 
       <button
         style={{
@@ -117,7 +134,15 @@ export function DashboardSidebar({ prefs, onPrefToggle }: DashboardSidebarProps)
         {STRINGS.nav.newVideo}
       </button>
 
-      <PreferenceChips prefs={prefs} onPrefToggle={onPrefToggle} />
+      <PreferenceChips
+        prefs={prefs}
+        onPrefToggle={onPrefToggle}
+        customPrefs={customPrefs}
+        onCustomPrefsChange={onCustomPrefsChange}
+        appliedCustomPrefs={appliedCustomPrefs}
+        onApplyCustomPrefs={onApplyCustomPrefs}
+        showCheckmark={showCheckmark}
+      />
     </motion.aside>
   );
 }

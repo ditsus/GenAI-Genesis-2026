@@ -1,10 +1,20 @@
 "use client";
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import SmartPlayer from "@/components/SmartPlayer";
-import { AgeGroup, Trailer, FILTERS } from "@/lib/types";
+import AgePicker from "@/components/AgePicker";
+import { AgeGroup, Trailer, FILTERS, SegmentType } from "@/lib/types";
 import { API_BASE_URL } from "@/lib/constants";
 import { STRINGS } from "@/lib/strings";
+
+/** Map dashboard preference chip labels to segment types (clearplay-style). */
+const PREF_TO_SEGMENT: Record<string, SegmentType> = {
+  Intimacy: "romance",
+  Profanity: "language",
+  Epileptic: "epileptic",
+  "Motion sickness": "epileptic",
+  "Loud Volume": "epileptic",
+};
 
 export default function WatchPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -14,6 +24,20 @@ export default function WatchPage({ params }: { params: Promise<{ id: string }> 
   const [age, setAge] = useState<AgeGroup>(
     (searchParams.get("age") as AgeGroup) || "kids"
   );
+
+  const activeFiltersFromPrefs = useMemo(() => {
+    const prefsParam = searchParams.get("prefs");
+    if (!prefsParam) return null;
+    const prefNames = prefsParam.split(",").map((s) => s.trim());
+    const types: SegmentType[] = [];
+    for (const name of prefNames) {
+      const segType = PREF_TO_SEGMENT[name];
+      if (segType && !types.includes(segType)) types.push(segType);
+    }
+    return types;
+  }, [searchParams]);
+
+  const activeFilters = activeFiltersFromPrefs ?? FILTERS[age];
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/trailers`)
@@ -27,7 +51,6 @@ export default function WatchPage({ params }: { params: Promise<{ id: string }> 
   if (!trailer)
     return <div style={{ minHeight: "100vh", background: "#0B0E14" }} />;
 
-  const activeFilters = FILTERS[age];
   const filteredCount = trailer.segments.filter((s) =>
     activeFilters.includes(s.type)
   ).length;
@@ -76,7 +99,8 @@ export default function WatchPage({ params }: { params: Promise<{ id: string }> 
       </div>
 
       <div style={{ maxWidth: "900px", margin: "0 auto" }}>
-        <div style={{ marginBottom: "20px" }}>
+        <div style={{ marginBottom: "20px", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" }}>
+          <div>
           <h1
             style={{
               fontSize: "28px",
@@ -102,6 +126,10 @@ export default function WatchPage({ params }: { params: Promise<{ id: string }> 
               </span>
             )}
           </p>
+          </div>
+          {!activeFiltersFromPrefs && (
+            <AgePicker value={age} onChange={setAge} />
+          )}
         </div>
 
         <div
@@ -115,6 +143,7 @@ export default function WatchPage({ params }: { params: Promise<{ id: string }> 
             src={trailer.file}
             segments={trailer.segments}
             ageGroup={age}
+            activeFilters={activeFiltersFromPrefs ?? undefined}
           />
         </div>
 

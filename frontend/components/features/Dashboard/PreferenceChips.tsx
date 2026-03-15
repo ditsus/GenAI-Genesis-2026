@@ -6,9 +6,25 @@ import { GLASS_BORDER, GLASS_BG } from "@/lib/theme";
 interface PreferenceChipsProps {
   prefs: Record<string, boolean>;
   onPrefToggle: (key: string) => void;
+  /** Custom preferences text (controlled from parent for URL passing). */
+  customPrefs?: string;
+  onCustomPrefsChange?: (value: string) => void;
+  /** Applied custom text (shown after clicking Enter). */
+  appliedCustomPrefs?: string;
+  onApplyCustomPrefs?: () => void;
+  /** Show "Applied" checkmark state on the button. */
+  showCheckmark?: boolean;
 }
 
-export function PreferenceChips({ prefs, onPrefToggle }: PreferenceChipsProps) {
+export function PreferenceChips({
+  prefs,
+  onPrefToggle,
+  customPrefs = "",
+  onCustomPrefsChange,
+  appliedCustomPrefs,
+  onApplyCustomPrefs,
+  showCheckmark = false,
+}: PreferenceChipsProps) {
   const groups = [
     {
       label: STRINGS.dashboard.prefGroups.sensory,
@@ -98,9 +114,11 @@ export function PreferenceChips({ prefs, onPrefToggle }: PreferenceChipsProps) {
           </p>
           <textarea
             placeholder={STRINGS.dashboard.customPreferencesPlaceholder}
+            value={customPrefs}
+            onChange={(e) => onCustomPrefsChange?.(e.target.value)}
             style={{
               width: "100%",
-              height: "150px",
+              height: "120px",
               borderRadius: "12px",
               border: GLASS_BORDER,
               background: GLASS_BG,
@@ -115,6 +133,20 @@ export function PreferenceChips({ prefs, onPrefToggle }: PreferenceChipsProps) {
               boxSizing: "border-box",
             }}
           />
+          {onApplyCustomPrefs && (
+            <button
+              type="button"
+              className={`enter-prefs-btn${showCheckmark ? " applied" : ""}`}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const trimmed = customPrefs?.trim() ?? "";
+                if (trimmed) onApplyCustomPrefs();
+              }}
+            >
+              <span>{showCheckmark ? "Applied" : "Enter"}</span>
+            </button>
+          )}
         </div>
       </div>
     </div>
