@@ -7,3 +7,6 @@
 
 .start.bat
 start.sh
+.railtracks
+
+./backend/__pycache__
