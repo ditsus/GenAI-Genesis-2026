@@ -1,11 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { STRINGS } from "@/lib/strings";
+import { LearnMoreModal } from "./LearnMoreModal";
 
 export function Hero() {
   const router = useRouter();
+  const [modalOpen, setModalOpen] = useState(false);
 
   return (
     <motion.div
@@ -65,6 +68,7 @@ export function Hero() {
           {STRINGS.nav.getStarted}
         </button>
         <button
+          onClick={() => setModalOpen(true)}
           style={{
             background: "transparent",
             color: "#ffffff",
@@ -88,6 +92,8 @@ export function Hero() {
           {STRINGS.nav.learnMore}
         </button>
       </div>
+
+      <LearnMoreModal open={modalOpen} onClose={() => setModalOpen(false)} />
     </motion.div>
   );
 }

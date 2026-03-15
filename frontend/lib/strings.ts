@@ -77,5 +77,12 @@ export const STRINGS = {
   home: {
     heroTitleLine1: "Optimized video for all",
     heroTitleLine2: "major platforms.",
+    learnMoreModal: {
+      title: "Why REEL?",
+      bullet1: "Real-time Video Modification",
+      bullet2: "Context-Aware Replacements",
+      bullet3: "Safety-First Content Filtering",
+      close: "Close",
+    },
   },
 } as const;
