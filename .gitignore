@@ -1,0 +1,9 @@
+# Videos / generated assets
+**/*.mp4
+**/*.jpg
+**/*.jpeg
+# Optional: keep these folders but not their contents
+clearplay/backend/trailers/*
+clearplay/backend/outputs/*
+clearplay/backend/frames/*
+!.gitkeep

@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+* {
+  box-sizing: border-box;
+}
+
+/* Pointer cursor for interactive elements - must override any base cursor */
+button,
+a,
+input[type="range"],
+input[type="submit"],
+input[type="button"],
+[role="button"],
+.cursor-pointer {
+  cursor: pointer !important;
+}
+
+body {
+  background: #0B0E14;
+  color: #ffffff;
+  font-family: "Inter", sans-serif;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#cursor-glow {
+  position: fixed;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  background: radial-gradient(circle, rgba(140,160,255,0.1) 0%, rgba(140,160,255,0.03) 30%, transparent 60%);
+  transform: translate(-50%, -50%);
+  transition: opacity 0.2s ease;
+  mix-blend-mode: screen;
+}
