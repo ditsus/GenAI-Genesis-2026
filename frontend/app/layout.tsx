@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { CursorGlow } from "./components/CursorGlow";
+import { STRINGS } from "@/lib/strings";
 
 export const metadata: Metadata = {
-  title: "REEL",
-  description: "Optimized video for all major platforms.",
+  title: STRINGS.app.name,
+  description: STRINGS.app.tagline,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

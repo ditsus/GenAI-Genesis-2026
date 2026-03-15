@@ -1,23 +1,31 @@
 "use client";
-import { AgeGroup } from "@/lib/types";
 
-const OPTIONS: { value: AgeGroup; label: string; sub: string }[] = [
-  { value: "kids",  label: "Kids",  sub: "All filtered" },
-  { value: "teen",  label: "Teen",  sub: "Partial filter" },
-  { value: "adult", label: "Adult", sub: "Unfiltered" },
+import { AgePickerProps } from "@/lib/types";
+import { STRINGS } from "@/lib/strings";
+
+const OPTIONS = [
+  {
+    value: "kids" as const,
+    label: STRINGS.agePicker.kids,
+    sub: STRINGS.agePicker.kidsSub,
+  },
+  {
+    value: "teen" as const,
+    label: STRINGS.agePicker.teen,
+    sub: STRINGS.agePicker.teenSub,
+  },
+  {
+    value: "adult" as const,
+    label: STRINGS.agePicker.adult,
+    sub: STRINGS.agePicker.adultSub,
+  },
 ];
 
-export default function AgePicker({
-  value,
-  onChange,
-}: {
-  value: AgeGroup;
-  onChange: (v: AgeGroup) => void;
-}) {
+export default function AgePicker({ value, onChange }: AgePickerProps) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
       <span style={{ color: "#666", fontSize: "13px", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-        Viewer
+        {STRINGS.agePicker.viewer}
       </span>
       <div
         style={{

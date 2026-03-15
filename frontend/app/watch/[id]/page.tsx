@@ -3,6 +3,8 @@ import { useEffect, useState, use } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import SmartPlayer from "@/components/SmartPlayer";
 import { AgeGroup, Trailer, FILTERS } from "@/lib/types";
+import { API_BASE_URL } from "@/lib/constants";
+import { STRINGS } from "@/lib/strings";
 
 export default function WatchPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -14,7 +16,7 @@ export default function WatchPage({ params }: { params: Promise<{ id: string }> 
   );
 
   useEffect(() => {
-    fetch(`http://localhost:8000/api/trailers`)
+    fetch(`${API_BASE_URL}/api/trailers`)
       .then((r) => r.json())
       .then((data: Trailer[]) => {
         const found = data.find((t) => t.id === id);
@@ -96,7 +98,7 @@ export default function WatchPage({ params }: { params: Promise<{ id: string }> 
             {trailer.year} · {trailer.rating} · {trailer.genres.join(", ")}
             {filteredCount > 0 && (
               <span style={{ color: "rgba(255,255,255,0.5)", marginLeft: "12px" }}>
-                {filteredCount} modification{filteredCount > 1 ? "s" : ""} active
+                {STRINGS.player.modificationCount(filteredCount)}
               </span>
             )}
           </p>
@@ -127,7 +129,7 @@ export default function WatchPage({ params }: { params: Promise<{ id: string }> 
               letterSpacing: "0.12em",
             }}
           >
-            Modifications
+            {STRINGS.player.modifications}
           </h2>
           <div
             style={{
@@ -193,7 +195,7 @@ export default function WatchPage({ params }: { params: Promise<{ id: string }> 
                         fontWeight: 500,
                       }}
                     >
-                      AI replacement ready
+                      {STRINGS.player.aiReplacementReady}
                     </span>
                   )}
                 </div>

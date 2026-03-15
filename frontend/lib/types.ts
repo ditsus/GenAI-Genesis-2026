@@ -26,3 +26,24 @@ export const FILTERS: Record<AgeGroup, SegmentType[]> = {
   teen:  ["romance", "horror", "epileptic"],
   adult: ["epileptic"],
 };
+
+// ─── Component prop interfaces ─────────────────────────────────────────────
+
+export interface SmartPlayerProps {
+  src: string;
+  segments: Segment[];
+  ageGroup: AgeGroup;
+}
+
+export interface AgePickerProps {
+  value: AgeGroup;
+  onChange: (value: AgeGroup) => void;
+}
+
+export interface VideoCardData {
+  id?: string;
+  title: string;
+  subtitle?: string;
+  image: string;
+  badge: string;
+}
